@@ -4,16 +4,23 @@
   "description": "Learning node js express and mongoDB",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "start:prod": "cross-env NODE_ENV=production nodemon server.js",
+    "debug": "ndb server.js"
   },
   "author": "Maxwell",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
     "morgan": "^1.10.0",
     "slugify": "^1.6.6",
     "validator": "^13.12.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }
