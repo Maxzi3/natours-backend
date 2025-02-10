@@ -62,14 +62,14 @@ const protect = catchAsyncError(async (req, res, next) => {
   ) {
     token = req.headers.authorization.split(' ')[1];
   }
-  
+
   if (!token)
     return next(
       new AppError('You are not Logged in! Please Log in to get access', 401)
     );
 
   // 2) Verfication of Token
-  const decoded = await jwt.verify(token, process.env.JWT_SECRET);
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
   console.log(decoded);
   // 3)check if user still exist
   // 4) Check if user change password after the token was issued
