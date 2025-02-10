@@ -18,6 +18,11 @@ const userSchema = new mongoose.Schema({
   photo: {
     type: String,
   },
+  role: {
+    type: String,
+    enum: ['user', 'guide', 'lead-guide', 'admin'],
+    default: 'user',
+  },
   password: {
     type: String,
     required: [true, 'Please provide a password'],
@@ -34,6 +39,9 @@ const userSchema = new mongoose.Schema({
       },
       message: 'Passwords do not match. Please re-enter.',
     },
+  },
+  passwordChangedAt: {
+    type: Date,
   },
 });
 
@@ -54,6 +62,16 @@ userSchema.methods.correctPassword = async function (
   userPassword
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
+};
+userSchema.methods.changePasswordAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    console.log(this.passwordChangedAt, JWTTimestamp);
+    const passwordChangeTimestamp = Math.floor(
+      this.passwordChangedAt.getTime() / 1000
+    );
+    return JWTTimestamp < passwordChangeTimestamp; // True if password was changed AFTER token was issued
+  }
+  return false; // False means password wasn't changed
 };
 
 const User = mongoose.model('User', userSchema);
