@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const { isLowercase } = require('validator');
 const validator = require('validator');
@@ -43,6 +44,8 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: {
     type: Date,
   },
+  passwordResetToken: String,
+  passwordResetExpiresAt: Date,
 });
 
 userSchema.pre('save', async function (next) {
@@ -55,6 +58,14 @@ userSchema.pre('save', async function (next) {
   // Delete passwordConfirm field
   this.passwordConfirm = undefined;
   next();
+});
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) {
+    return next(); 
+  }
+
+  this.passwordChangedAt = Date.now() - 1000; // Prevent token issues
+  next(); 
 });
 
 userSchema.methods.correctPassword = async function (
@@ -72,6 +83,19 @@ userSchema.methods.changePasswordAfter = function (JWTTimestamp) {
     return JWTTimestamp < passwordChangeTimestamp; // True if password was changed AFTER token was issued
   }
   return false; // False means password wasn't changed
+};
+
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  this.passwordResetExpiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  return resetToken; // Send unhashed token to user
 };
 
 const User = mongoose.model('User', userSchema);
